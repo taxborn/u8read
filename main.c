@@ -29,43 +29,50 @@ int codepoint_bytes(uint8_t c) {
     return count;
 }
 
-wchar_t compute_codepoint(char *buffer, int index, int bytes) {
+wchar_t compute_codepoint(char *buffer, int index, int length) {
     wchar_t codepoint = 0;
 
-    switch (bytes) {
-        case 1:
-            codepoint |= ((buffer[index]     & 0x7F) << 0x00);
-            break;
-        case 2:
-            codepoint |= ((buffer[index]     & 0x1F) << 0x06)
-                      |  ((buffer[index + 1] & 0x3F) << 0x00);
-            break;
-        case 3:
-            codepoint |= ((buffer[index]     & 0x0F) << 0x0c)
-                      |  ((buffer[index + 1] & 0x3F) << 0x06)
-                      |  ((buffer[index + 2] & 0x3F) << 0x00);
-            break;
-        case 4:
-            codepoint |= ((buffer[index]     & 0x07) << 0x12)
-                      |  ((buffer[index + 1] & 0x3F) << 0x0c)
-                      |  ((buffer[index + 2] & 0x3F) << 0x06)
-                      |  ((buffer[index + 3] & 0x3F) << 0x00);
-            break;
-        default:
-            printf("ERROR IN DECODING (bytes = %d)", bytes);
-            exit(1);
+    if (length == 1) {
+        return ((buffer[index] & 0x7F) << 0x00);
+    }
+    if (length == 2) {
+            return   ((buffer[index]     & 0x1F) << 6)
+                   | ((buffer[index + 1] & 0x3F));
+    }
+    if (length == 3) {
+            return   ((buffer[index]     & 0x0F) << 12)
+                   | ((buffer[index + 1] & 0x3F) << 6)
+                   | ((buffer[index + 2] & 0x3F));
+    }
+    if (length == 4) {
+            return   ((buffer[index]     & 0x07) << 18)
+                   | ((buffer[index + 1] & 0x3F) << 12)
+                   | ((buffer[index + 2] & 0x3F) << 6)
+                   | ((buffer[index + 3] & 0x3F));
     }
 
-    return codepoint;
+    // if we don't get one of those byte lengths, there's an issue.
+    printf("ERROR IN DECODING (bytes = %d)", length);
+
+    exit(EXIT_FAILURE);
+}
+
+void print_usage(char *executable) {
+    printf("USAGE: %s <file>\n", executable);
 }
 
 int main(int argc, char** argv) {
+    if (argc != 2) {
+        print_usage(argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
     setlocale(LC_CTYPE, "");
 
     FILE *file;
     int c;
 
-    if ((file = fopen("read.txt", "r")) == NULL) {
+    if ((file = fopen(argv[1], "r")) == NULL) {
         free(file);
         printf("err = %d", errno);
         return EXIT_FAILURE;
