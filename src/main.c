@@ -30,8 +30,6 @@ int codepoint_bytes(uint8_t c) {
 }
 
 wchar_t compute_codepoint(char *buffer, int index, int length) {
-    wchar_t codepoint = 0;
-
     if (length == 1) {
         return ((buffer[index] & 0x7F) << 0x00);
     }
@@ -70,7 +68,6 @@ int main(int argc, char** argv) {
     setlocale(LC_CTYPE, "");
 
     FILE *file;
-    int c;
 
     if ((file = fopen(argv[1], "r")) == NULL) {
         free(file);
@@ -93,13 +90,11 @@ int main(int argc, char** argv) {
     int idx = 0;
 
     while (idx < file_size) {
-        char chr = code[idx];
-        if (chr == '\0') break;
-        int bytes = codepoint_bytes((int) chr);
-
+        // TODO: Check if we accidentally index midway into a codepoint. If we 
+        // do, we can work backwards until we find a valid start.
+        if (code[idx] == '\0') break;
+        int bytes = codepoint_bytes(code[idx]);
         wchar_t codepoint = compute_codepoint(code, idx, bytes);
-
-
         printf("U+%x (bytes = %d): '%lc'\n", codepoint, bytes, codepoint);
         idx += bytes;
     }
