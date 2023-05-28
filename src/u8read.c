@@ -9,13 +9,13 @@
 // check to see if the input is a valid unicode byte 1 format.
 static bool is_valid_unicode_start(uint8_t input) {
     // 1-byte case, 0b0xxx'xxxx
-    if (input >> 7 == 0) return true;
+    if ((input & 0x80) == 0x00) return true;
     // 2-byte case, 0b110x'xxxx
-    if (input >> 5 == 0b110) return true;
+    if ((input & 0xE0) == 0xC0) return true;
     // 3-byte case, 0b1110'xxxx
-    if (input >> 4 == 0b1110) return true;
+    if ((input & 0xF0) == 0xE0) return true;
     // 4-byte case, 0b1111'0xxx
-    if (input >> 3 == 0b11110) return true;
+    if ((input & 0xF8) == 0xF0) return true;
 
     return false;
 }
