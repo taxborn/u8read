@@ -4,6 +4,6 @@
 #include <stdint.h>
 
 uint8_t codepoint_bytes(uint8_t input);
-wchar_t compute_codepoint(char *buffer, int index, int length);
+uint32_t compute_codepoint(char *buffer, int index, int length);
 
 #endif // U8READ_H_

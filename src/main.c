@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <wchar.h>
 #include <locale.h>
 
 #include "u8read.h"
@@ -52,7 +51,7 @@ int main(int argc, char** argv) {
             continue;
         }
         int bytes = codepoint_bytes(code[idx]);
-        wchar_t codepoint = compute_codepoint(code, idx, bytes);
+        uint32_t codepoint = compute_codepoint(code, idx, bytes);
         printf("U+%x (bytes = %d): '%lc'\n", codepoint, bytes, codepoint);
         idx += bytes;
     }
