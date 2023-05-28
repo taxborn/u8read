@@ -28,23 +28,27 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+    // get the file size
     fseek(file, 0, SEEK_END);
     int file_size = ftell(file);
     rewind(file);
 
+    // create a buffer
     char *buffer = (char *)malloc(file_size);
 
+    // read the file into the buffer
     int ret = fread(buffer, sizeof(*buffer), file_size, file);
+    fclose(file);
     if (ret != file_size) {
-        printf("file read error: %d\n", ret); 
+        printf("file read error: %d\n", ret);
+        exit(EXIT_FAILURE);
     }
-    buffer[file_size - 1] = '\0';
+    buffer[file_size] = '\0';
 
     // print the codepoints of a buffer
-    print_codepoints(buffer);
+    uint8_t size = print_codepoints(buffer);
 
-    fclose(file);
-    printf("read %d bytes\n", file_size);
+    printf("read %d bytes (codepoints count = %d)\n", file_size, size);
     free(buffer);
 
     return 0;
