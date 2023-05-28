@@ -51,11 +51,10 @@ static uint32_t compute_codepoint(char *buffer, int index, int length) {
     exit(EXIT_FAILURE);
 }
 
-void print_codepoints(char* buffer, int end) {
+void print_codepoints(char* buffer) {
     int index = 0;
 
-    while (index < end) {
-        if (buffer[index] == '\0') break;
+    while (buffer[index] != '\0') {
         // check if we indexed into the middle of a codepoint
         if ((buffer[index] & 0b11000000) == 0b10000000) {
             // TODO if we do this, we can backtrack until we found a valid
@@ -63,6 +62,7 @@ void print_codepoints(char* buffer, int end) {
             index += 1;
             continue;
         }
+
         int bytes = codepoint_bytes(buffer[index]);
         uint32_t codepoint = compute_codepoint(buffer, index, bytes);
 

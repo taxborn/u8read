@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-void print_codepoints(char* buffer, int end);
+void print_codepoints(char* buffer);
 
 #endif // U8READ_H_

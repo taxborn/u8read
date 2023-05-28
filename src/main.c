@@ -31,20 +31,20 @@ int main(int argc, char** argv) {
     int file_size = ftell(file);
     rewind(file);
 
-    char *code = (char *)malloc(file_size);
+    char *buffer = (char *)malloc(file_size);
 
-    int ret = fread(code, sizeof(*code), file_size, file);
+    int ret = fread(buffer, sizeof(*buffer), file_size, file);
     if (ret != file_size) {
         printf("file read error: %d\n", ret); 
     }
-    code[file_size - 1] = '\0';
+    buffer[file_size - 1] = '\0';
 
     // print the codepoints of a buffer
-    print_codepoints(code, file_size);
+    print_codepoints(buffer);
 
     fclose(file);
     printf("read %d bytes\n", file_size);
-    free(code);
+    free(buffer);
 
     return 0;
 }
