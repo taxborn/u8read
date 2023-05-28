@@ -31,7 +31,7 @@ int codepoint_bytes(uint8_t c) {
 
 wchar_t compute_codepoint(char *buffer, int index, int length) {
     if (length == 1) {
-        return ((buffer[index] & 0x7F) << 0x00);
+        return       ((buffer[index] & 0x7F) << 0x00);
     }
     if (length == 2) {
             return   ((buffer[index]     & 0x1F) << 6)
@@ -90,9 +90,14 @@ int main(int argc, char** argv) {
     int idx = 0;
 
     while (idx < file_size) {
-        // TODO: Check if we accidentally index midway into a codepoint. If we 
-        // do, we can work backwards until we find a valid start.
         if (code[idx] == '\0') break;
+        if ((code[idx] & 0b11000000) == 0b10000000) {
+            // TODO: Check if we accidentally index midway into a codepoint. If we 
+            // do, we can work backwards until we find a valid start.
+            printf("ERROR: indexed the middle of a codepoint. advancing...\n");
+            idx += 1;
+            continue;
+        }
         int bytes = codepoint_bytes(code[idx]);
         wchar_t codepoint = compute_codepoint(code, idx, bytes);
         printf("U+%x (bytes = %d): '%lc'\n", codepoint, bytes, codepoint);
