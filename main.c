@@ -29,11 +29,41 @@ int codepoint_bytes(uint8_t c) {
     return count;
 }
 
+wchar_t compute_codepoint(char *buffer, int index, int bytes) {
+    wchar_t codepoint = 0;
+
+    switch (bytes) {
+        case 1:
+            codepoint |= ((buffer[index]     & 0x7F) << 0x00);
+            break;
+        case 2:
+            codepoint |= ((buffer[index]     & 0x1F) << 0x06)
+                      |  ((buffer[index + 1] & 0x3F) << 0x00);
+            break;
+        case 3:
+            codepoint |= ((buffer[index]     & 0x0F) << 0x0c)
+                      |  ((buffer[index + 1] & 0x3F) << 0x06)
+                      |  ((buffer[index + 2] & 0x3F) << 0x00);
+            break;
+        case 4:
+            codepoint |= ((buffer[index]     & 0x07) << 0x12)
+                      |  ((buffer[index + 1] & 0x3F) << 0x0c)
+                      |  ((buffer[index + 2] & 0x3F) << 0x06)
+                      |  ((buffer[index + 3] & 0x3F) << 0x00);
+            break;
+        default:
+            printf("ERROR IN DECODING (bytes = %d)", bytes);
+            exit(1);
+    }
+
+    return codepoint;
+}
+
 int main(int argc, char** argv) {
     setlocale(LC_CTYPE, "");
 
     FILE *file;
-    int n; int c;
+    int c;
 
     if ((file = fopen("read.txt", "r")) == NULL) {
         free(file);
@@ -49,44 +79,22 @@ int main(int argc, char** argv) {
 
     int ret = fread(code, sizeof(*code), file_size, file);
     if (ret != file_size) {
-
+        printf("file read error: %d\n", ret); 
     }
     code[file_size - 1] = '\0';
 
-    for (int i = 0; i < file_size; i++) {
-        wchar_t codepoint = 0;
-        char pot = code[i];
-        int bts = codepoint_bytes((int) pot);
+    int idx = 0;
 
-        switch (bts) {
-            case 1:
-                codepoint |= (code[i] & 0x7F);
-                break;
-            case 2:
-                codepoint |= ((code[i] & 0x1F) << 0x6);
-                codepoint |= ((code[i + 1] & 0x3F));
-                break;
-            case 3:
-                codepoint |= ((code[i] & 0xF) << 0xc);
-                codepoint |= ((code[i + 1] & 0x3F) << 0x6);
-                codepoint |= ((code[i + 2] & 0x3F));
-                break;
-            case 4:
-                codepoint |= ((code[i] & 0x7) << 0x12);
-                codepoint |= ((code[i + 1] & 0x3F) << 0xc);
-                codepoint |= ((code[i + 2] & 0x3F) << 0x6);
-                codepoint |= ((code[i + 3] & 0x3F));
-                break;
-            default:
-                printf("ERROR IN DECODING (bts = %d)", bts);
-                exit(1);
-        }
+    while (idx < file_size) {
+        char chr = code[idx];
+        if (chr == '\0') break;
+        int bytes = codepoint_bytes((int) chr);
 
-        i += bts - 1;
+        wchar_t codepoint = compute_codepoint(code, idx, bytes);
 
-        if (pot != '\0') {
-            printf("U+%x (bytes = %d): '%lc'\n", codepoint, bts, codepoint);
-        }
+
+        printf("U+%x (bytes = %d): '%lc'\n", codepoint, bytes, codepoint);
+        idx += bytes;
     }
 
     fclose(file);
