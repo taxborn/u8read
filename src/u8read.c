@@ -71,13 +71,14 @@ static uint32_t compute_codepoint(char *buffer, int index, int length) {
 // print the utf-8 codepoints of a buffer
 void print_codepoints(char* buffer) {
     int index = 0;
+    char byte = 0;
 
-    while (buffer[index] != '\0') {
+    while ((byte = buffer[index]) != '\0') {
         // check if we indexed into the middle of a codepoint
-        if ((buffer[index] & 0xc0) == 0x80) {
-            // TODO if we do this, we can backtrack until we found a valid
+        if ((byte & 0xc0) == 0x80) {
             printf("ERROR: indexed the middle of a codepoint. advancing...\n");
 
+            // TODO if we do this, we can backtrack until we found a valid codepoint
             // int retries = 0;
             // while (retries < 4) {
             //     retries++;
@@ -91,10 +92,15 @@ void print_codepoints(char* buffer) {
             continue;
         }
 
-        int bytes = codepoint_bytes(buffer[index]);
+        int bytes = codepoint_bytes(byte);
         uint32_t codepoint = compute_codepoint(buffer, index, bytes);
 
-        printf("U%x: '%lc' (%d bytes)\n", codepoint, codepoint, bytes);
+        if (bytes <= 3) {
+            printf("U-%.4X: '%lc' (%d bytes)\n", codepoint, codepoint, bytes);
+        } else {
+            printf("U-%.6X: '%lc' (%d bytes)\n", codepoint, codepoint, bytes);
+        }
+        // printf("  -> bits: 0b%.32b\n", codepoint);
 
         index += bytes;
     }
