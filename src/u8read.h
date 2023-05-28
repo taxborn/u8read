@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-uint8_t codepoint_bytes(uint8_t input);
-uint32_t compute_codepoint(char *buffer, int index, int length);
+void print_codepoints(char* buffer, int end);
 
 #endif // U8READ_H_

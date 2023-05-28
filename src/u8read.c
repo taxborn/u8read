@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-uint8_t codepoint_bytes(uint8_t input) {
+#include "u8read.h"
+
+static uint8_t codepoint_bytes(uint8_t input) {
     // we only really care about the top 4 bits of the input, so
     // shift them down to work with them
     input >>= 4;
@@ -23,7 +25,7 @@ uint8_t codepoint_bytes(uint8_t input) {
     return count;
 }
 
-uint32_t compute_codepoint(char *buffer, int index, int length) {
+static uint32_t compute_codepoint(char *buffer, int index, int length) {
     if (length == 1) {
         return   ((buffer[index]     & 0x7F) << 0);
     }
@@ -47,4 +49,25 @@ uint32_t compute_codepoint(char *buffer, int index, int length) {
     printf("ERROR IN DECODING (bytes = %d). expected at most 4.\n", length);
 
     exit(EXIT_FAILURE);
+}
+
+void print_codepoints(char* buffer, int end) {
+    int index = 0;
+
+    while (index < end) {
+        if (buffer[index] == '\0') break;
+        // check if we indexed into the middle of a codepoint
+        if ((buffer[index] & 0b11000000) == 0b10000000) {
+            // TODO if we do this, we can backtrack until we found a valid
+            printf("ERROR: indexed the middle of a codepoint. advancing...\n");
+            index += 1;
+            continue;
+        }
+        int bytes = codepoint_bytes(buffer[index]);
+        uint32_t codepoint = compute_codepoint(buffer, index, bytes);
+
+        printf("U+%x (bytes = %d): '%lc'\n", codepoint, bytes, codepoint);
+
+        index += bytes;
+    }
 }

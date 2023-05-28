@@ -39,22 +39,8 @@ int main(int argc, char** argv) {
     }
     code[file_size - 1] = '\0';
 
-    int idx = 0;
-
-    while (idx < file_size) {
-        if (code[idx] == '\0') break;
-        if ((code[idx] & 0b11000000) == 0b10000000) {
-            // TODO: Check if we accidentally index midway into a codepoint. If we 
-            // do, we can work backwards until we find a valid start.
-            printf("ERROR: indexed the middle of a codepoint. advancing...\n");
-            idx += 1;
-            continue;
-        }
-        int bytes = codepoint_bytes(code[idx]);
-        uint32_t codepoint = compute_codepoint(code, idx, bytes);
-        printf("U+%x (bytes = %d): '%lc'\n", codepoint, bytes, codepoint);
-        idx += bytes;
-    }
+    // print the codepoints of a buffer
+    print_codepoints(code, file_size);
 
     fclose(file);
     printf("read %d bytes\n", file_size);
