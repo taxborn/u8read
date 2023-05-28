@@ -31,7 +31,7 @@ int codepoint_bytes(uint8_t c) {
 
 wchar_t compute_codepoint(char *buffer, int index, int length) {
     if (length == 1) {
-        return       ((buffer[index] & 0x7F) << 0x00);
+        return       ((buffer[index]     & 0x7F) << 0);
     }
     if (length == 2) {
             return   ((buffer[index]     & 0x1F) << 6)
