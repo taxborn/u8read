@@ -30,6 +30,8 @@ int codepoint_bytes(uint8_t c) {
 }
 
 wchar_t compute_codepoint(char *buffer, int index, int length) {
+    wchar_t codepoint = 0;
+
     if (length == 1) {
         return ((buffer[index] & 0x7F) << 0x00);
     }
@@ -68,6 +70,7 @@ int main(int argc, char** argv) {
     setlocale(LC_CTYPE, "");
 
     FILE *file;
+    int c;
 
     if ((file = fopen(argv[1], "r")) == NULL) {
         free(file);
