@@ -1,10 +1,31 @@
+#include <assert.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "u8read.h"
 
+// check to see if the input is a valid unicode byte 1 format.
+static bool is_valid_unicode_start(uint8_t input) {
+    // 1-byte case, 0b0xxx'xxxx
+    if (input >> 7 == 0) return true;
+    // 2-byte case, 0b110x'xxxx
+    if (input >> 5 == 0b110) return true;
+    // 3-byte case, 0b1110'xxxx
+    if (input >> 4 == 0b1110) return true;
+    // 4-byte case, 0b1111'0xxx
+    if (input >> 3 == 0b11110) return true;
+
+    return false;
+}
+
+// count the number of bytes the unicode codepoint should be
 static uint8_t codepoint_bytes(uint8_t input) {
+    // we have already checked if we have indexed into a middle-byte so we shouldn't 
+    // hit this, but might be good to check.
+    assert(is_valid_unicode_start(input) && "Can only calculate codepoint bytes from a valid UTF-8 byte 1 format.");
+
     // first check if we are multi-byte at all, if not, just a single byte
     // code point. this just checks if the MSB is 1.
     if (input >> 7 == 0) return 1;
@@ -15,17 +36,14 @@ static uint8_t codepoint_bytes(uint8_t input) {
 
     int count = 0;
 
-    // count the number of 1's
-    while (input) {
-        // increment if there is a 1 in the LSB
-        count += input & 1;
-        input >>= 1;
-    }
+    // loop to count the number of set bits in an input
+    for (; input; input >>= 1) count += input & 1;
 
     // the number of ones is equal to how many bytes the codepoint has
     return count;
 }
 
+// compute the 32-bit codepoint
 static uint32_t compute_codepoint(char *buffer, int index, int length) {
     switch (length) {
         case 1:
@@ -50,6 +68,7 @@ static uint32_t compute_codepoint(char *buffer, int index, int length) {
     }
 }
 
+// print the utf-8 codepoints of a buffer
 void print_codepoints(char* buffer) {
     int index = 0;
 
@@ -58,6 +77,16 @@ void print_codepoints(char* buffer) {
         if ((buffer[index] & 0xc0) == 0x80) {
             // TODO if we do this, we can backtrack until we found a valid
             printf("ERROR: indexed the middle of a codepoint. advancing...\n");
+
+            // int retries = 0;
+            // while (retries < 4) {
+            //     retries++;
+            //     if (is_valid_unicode_start(buffer[index - retries])) {
+            //         index -= retries;
+            //         continue;
+            //     }
+            // }
+
             index += 1;
             continue;
         }
