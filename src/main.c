@@ -9,23 +9,18 @@
 #include "u8read.h"
 
 void print_usage(char *executable) {
-    printf("USAGE: %s <file>\n", executable);
+    printf("USAGE: %s <file> [options]\n", executable);
+    printf("OPTIONS:\n");
+    printf("  --print-bits   - Print the bits of the codepoint\n");
 }
 
-int main(int argc, char** argv) {
-    if (argc != 2) {
-        print_usage(argv[0]);
-        exit(EXIT_FAILURE);
-    }
-
-    setlocale(LC_CTYPE, "");
-
+char *open_file(char *input) {
     FILE *file;
 
-    if ((file = fopen(argv[1], "r")) == NULL) {
+    if ((file = fopen(input, "r")) == NULL) {
         free(file);
         printf("err = %d", errno);
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     // get the file size
@@ -33,7 +28,6 @@ int main(int argc, char** argv) {
     int file_size = ftell(file);
     rewind(file);
 
-    // create a buffer
     char *buffer = (char *)malloc(file_size);
 
     // read the file into the buffer
@@ -44,11 +38,25 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
     buffer[file_size] = '\0';
+    return buffer;
+}
 
+int main(int argc, char** argv) {
+    setlocale(LC_CTYPE, "");
+
+    if (argc == 1 || argc > 3) {
+        print_usage(argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    // check if the 3rd argument passed is '--print-bits'
+    bool print = argc == 3 && strcmp(argv[2], "--print-bits") == 0;
+
+    // create a buffer
+    char *buffer = open_file(argv[1]);
     // print the codepoints of a buffer
-    uint8_t size = print_codepoints(buffer);
-
-    printf("read %d bytes (codepoints count = %d)\n", file_size, size);
+    uint8_t size = print_codepoints(buffer, print);
+    printf("read %d codepoints\n", size);
     free(buffer);
 
     return 0;

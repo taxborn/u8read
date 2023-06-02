@@ -51,15 +51,13 @@ static uint32_t unicode_codepoint_of(char *buffer, int index, int length) {
     }
 }
 
-// print the utf-8 codepoints of a buffer. returns the number of bytes
-// read.
-uint8_t print_codepoints(char* buffer) {
+// print the utf-8 codepoints of a buffer. returns the number of codepoints read.
+uint8_t print_codepoints(char* buffer, bool print_bits) {
     uint8_t index = 0;
     uint8_t byte = 0;
-    int bytes_read = 0;
+    int points_read = 0;
 
     while ((byte = buffer[index]) != '\0') {
-        // TODO: Check for BOM (U+FEFF, 0xEFBBBF) and skip if present.
         // check if we indexed into a continuation byte
         if ((byte & 0xc0) == 0x80) {
             // TODO if we do this, we can backtrack until we found a valid codepoint
@@ -69,25 +67,50 @@ uint8_t print_codepoints(char* buffer) {
             continue;
         }
 
-        // TODO: Check for overlong encodings. https://en.wikipedia.org/wiki/UTF-8#Overlong_encodings
+        // TODO: Check for overlong encodings. 
+        // https://en.wikipedia.org/wiki/UTF-8#Overlong_encodings
 
         uint8_t bytes = unicode_codepoint_length(byte);
-        bytes_read += bytes;
         if (bytes == 0) {
             printf("unable to determine length of codepoint: %.8b", byte);
             exit(EXIT_FAILURE);
         }
         uint32_t codepoint = unicode_codepoint_of(buffer, index, bytes);
+        // TODO: Check for BOM (Byte order mark) (U+FEFF, 0xEFBBBF) and skip if present.
 
+        // actually print the codepoint
+        printf("%d: U-", points_read + 1);
         if (bytes <= 3) {
-            printf("U-%.4X: '%lc' (%d bytes)\n", codepoint, codepoint, bytes);
+            printf("%.4X", codepoint);
         } else {
-            printf("U-%.6X: '%lc' (%d bytes)\n", codepoint, codepoint, bytes);
+            printf("%.6X", codepoint);
         }
-        // printf("  -> bits: 0b%.32b\n", codepoint);
+        printf(": '%lc' (%d bytes)\n", codepoint, bytes);
+
+        // if you want to print out all of the bits, uncomment:
+        if (print_bits) {
+            switch (bytes) {
+            case 1: {
+                printf("  -> codepoint bits: 0b%.7b\n", codepoint);
+            } break;
+            case 2: {
+                printf("  -> codepoint bits: 0b%.11b\n", codepoint);
+            } break;
+            case 3: {
+                printf("  -> codepoint bits: 0b%.16b\n", codepoint);
+            } break;
+            case 4: {
+                printf("  -> codepoint bits: 0b%.21b\n", codepoint);
+            } break;
+            default: { 
+                printf("ERROR: Invalid number of bytes: %d", bytes);
+            } break;
+            }
+        }
 
         index += bytes;
+        points_read += 1;
     }
 
-    return bytes_read;
+    return points_read;
 }
